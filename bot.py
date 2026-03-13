@@ -171,17 +171,15 @@ async def track(ctx, place: str):
                 data = await response.json()
                 circuits = data["MRData"]["CircuitTable"]["Circuits"]
 
-                # Normalize user input
-                query = place.strip().lower()
-
+                query = place.lower()
                 for circuit in circuits:
-                    location = circuit["Location"]["locality"].lower()
+                    city = circuit["Location"]["locality"].lower()
                     country = circuit["Location"]["country"].lower()
 
-                    # Match against both city and country
-                    if query in location or query in country:
+                    # Match against city or country
+                    if query in city or query in country:
                         embed = discord.Embed(
-                            title=f"{circuit['circuitName']}",
+                            title=circuit["circuitName"],
                             color=0x00ff00
                         )
                         embed.add_field(name="City", value=circuit["Location"]["locality"])
@@ -189,14 +187,10 @@ async def track(ctx, place: str):
                         embed.add_field(name="Circuit ID", value=circuit["circuitId"])
                         embed.add_field(name="Latitude", value=circuit["Location"]["lat"])
                         embed.add_field(name="Longitude", value=circuit["Location"]["long"])
-
-                        if "url" in circuit:
-                            embed.url = circuit["url"]
-
                         await ctx.send(embed=embed)
                         return
 
-                # If no circuit found
+                # If nothing matched
                 await ctx.send(f"No circuit found for '{place}'. Try using the country name too.")
             else:
                 await ctx.send("Failed to connect to API.")
