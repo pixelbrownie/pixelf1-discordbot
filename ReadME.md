@@ -3,6 +3,8 @@ made by pixelbrownie
 
 ## commands you can try
 - !nextgp
-- !schedule
+- !schedule <season info> not working
 - !track "country_name"
 - !driver "driver_name"
+- !trivia
+- !radio
