@@ -83,41 +83,40 @@ async def driver(ctx, name: str):
 
 @bot.command()
 async def results(ctx):
+    url = "https://api.jolpi.ca/ergast/f1/current/last/results.json"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            data = await response.json()
+            race = data["MRData"]["RaceTable"]["Races"][0]
 
-    url = "https://api.jolpi.ca/ergast/f1/2026/results.json"
-    data = requests.get(url).json()
+            embed = discord.Embed(
+                title=f"🏁 {race['raceName']} Results",
+                color=0xe10600
+            )
 
-    race = data["MRData"]["RaceTable"]["Races"][0]
+            for result in race["Results"][:3]:
+                position = result["position"]
+                driver = result["Driver"]["givenName"] + " " + result["Driver"]["familyName"]
+                team = result["Constructor"]["name"]
 
-    embed = discord.Embed(
-        title=f"🏁 {race['raceName']} Results",
-        color=0xe10600
-    )
+                embed.add_field(
+                    name=f"P{position}",
+                    value=f"{driver} ({team})",
+                    inline=False
+                )
 
-    for result in race["Results"][:3]:
-
-        position = result["position"]
-        driver = result["Driver"]["givenName"] + " " + result["Driver"]["familyName"]
-        team = result["Constructor"]["name"]
-
-        embed.add_field(
-            name=f"P{position}",
-            value=f"{driver} ({team})",
-            inline=False
-        )
-
-    await ctx.send(embed=embed)
-
+            await ctx.send(embed=embed)
 
 # !schedule
 # ==============================
-# 📅 Season Schedule Command
+# 📅 Schedule Command
 # ==============================
 
 @bot.command()
 async def schedule(ctx):
+    
+    url = "https://api.jolpi.ca/ergast/f1/current.json"
 
-    url = "https://api.jolpi.ca/ergast/f1/seasons.json"
     data = requests.get(url).json()
 
     races = data["MRData"]["RaceTable"]["Races"]
@@ -198,4 +197,4 @@ async def track(ctx, city: str):
             else:
                 await ctx.send("Failed to connect to API.")
 
-bot.run("TOKEN")
+bot.run(TOKEN)
