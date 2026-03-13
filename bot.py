@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 import aiohttp
 
 load_dotenv()
-TOKEN = os.getenv("MTQ4MTcxMTUzODkzODA1MjcyMA.GG4EM6.LB_Xx6n0PQrYXsZjRYjNSeNXrDZxeo3AQOsll8")
+TOKEN = os.getenv("TOKEN")
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -198,4 +198,4 @@ async def track(ctx, city: str):
             else:
                 await ctx.send("Failed to connect to API.")
 
-bot.run("MTQ4MTcxMTUzODkzODA1MjcyMA.GG4EM6.LB_Xx6n0PQrYXsZjRYjNSeNXrDZxeo3AQOsll8 ")
+bot.run("TOKEN")
