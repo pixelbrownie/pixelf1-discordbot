@@ -162,8 +162,7 @@ async def radio(ctx):
 # 🏟️ Track Info Command
 # ==============================
 @bot.command()
-async def track(ctx, city: str):
-    # The URL for all circuits
+async def track(ctx, place: str):
     url = "https://api.jolpi.ca/ergast/f1/circuits.json"
 
     async with aiohttp.ClientSession() as session:
@@ -172,23 +171,25 @@ async def track(ctx, city: str):
                 data = await response.json()
                 circuits = data["MRData"]["CircuitTable"]["Circuits"]
 
-                # Loop through circuits to find a match by locality (city)
-                for circuit in circuits:
-                    location = circuit["Location"]["locality"]
-                    country = circuit["Location"]["country"]
+                # Normalize user input
+                query = place.strip().lower()
 
-                    if city.lower() in location.lower():
+                for circuit in circuits:
+                    location = circuit["Location"]["locality"].lower()
+                    country = circuit["Location"]["country"].lower()
+
+                    # Match against both city and country
+                    if query in location or query in country:
                         embed = discord.Embed(
                             title=f"{circuit['circuitName']}",
                             color=0x00ff00
                         )
-                        embed.add_field(name="City", value=location)
-                        embed.add_field(name="Country", value=country)
+                        embed.add_field(name="City", value=circuit["Location"]["locality"])
+                        embed.add_field(name="Country", value=circuit["Location"]["country"])
                         embed.add_field(name="Circuit ID", value=circuit["circuitId"])
                         embed.add_field(name="Latitude", value=circuit["Location"]["lat"])
                         embed.add_field(name="Longitude", value=circuit["Location"]["long"])
-                        
-                        # Add link to circuit info if available
+
                         if "url" in circuit:
                             embed.url = circuit["url"]
 
@@ -196,7 +197,7 @@ async def track(ctx, city: str):
                         return
 
                 # If no circuit found
-                await ctx.send("No circuit found for that city.")
+                await ctx.send(f"No circuit found for '{place}'. Try using the country name too.")
             else:
                 await ctx.send("Failed to connect to API.")
 
