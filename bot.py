@@ -9,6 +9,9 @@ import aiohttp
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
 
+from keep_alive import keep_alive
+keep_alive()  # starts the tiny web server
+
 intents = discord.Intents.default()
 intents.message_content = True
 
