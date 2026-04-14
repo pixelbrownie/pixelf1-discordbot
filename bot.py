@@ -163,21 +163,23 @@ async def radio(ctx):
 # ==============================
 @bot.command()
 async def track(ctx, place: str):
-    url = "https://api.jolpi.ca/ergast/f1/circuits.json"
+    url = "https://api.jolpi.ca/ergast/f1/current.json"
 
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             if response.status == 200:
                 data = await response.json()
-                circuits = data["MRData"]["CircuitTable"]["Circuits"]
+                races = data["MRData"]["RaceTable"]["Races"]
 
                 query = place.lower()
-                for circuit in circuits:
+                for race in races:
+                    circuit = race["Circuit"]
                     city = circuit["Location"]["locality"].lower()
                     country = circuit["Location"]["country"].lower()
+                    circuit_name = circuit["circuitName"].lower()
 
-                    # Match against city or country
-                    if query in city or query in country:
+                    # Match against city, country, or circuit name
+                    if (query in city or query in country or query in circuit_name):
                         embed = discord.Embed(
                             title=circuit["circuitName"],
                             color=0x00ff00
@@ -187,12 +189,71 @@ async def track(ctx, place: str):
                         embed.add_field(name="Circuit ID", value=circuit["circuitId"])
                         embed.add_field(name="Latitude", value=circuit["Location"]["lat"])
                         embed.add_field(name="Longitude", value=circuit["Location"]["long"])
+                        embed.add_field(name="Race Date", value=race["date"])
                         await ctx.send(embed=embed)
                         return
 
                 # If nothing matched
-                await ctx.send(f"No circuit found for '{place}'. Try using the country name too.")
+                await ctx.send(f"No circuit found for '{place}'. Try using city, country, or circuit name.")
             else:
                 await ctx.send("Failed to connect to API.")
 
+# ==============================
+# 📰 F1 News Command
+# ==============================
+@bot.command()
+async def news(ctx):
+    try:
+        # Use a simpler approach with ESPN F1 news RSS feed
+        url = "https://www.espn.com/espn/rss/f1/story/_/id"
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, timeout=10) as response:
+                if response.status == 200:
+                    content = await response.text()
+                    
+                    # Simple XML parsing for RSS feed
+                    import re
+                    # Extract titles from RSS items
+                    titles = re.findall(r'<title>(.*?)</title>', content)
+                    # Remove the first title which is usually the feed title
+                    titles = titles[1:6]  # Get next 5 titles
+                    
+                    if titles:
+                        embed = discord.Embed(
+                            title="📰 Latest F1 News",
+                            description="Here are the latest Formula 1 headlines from ESPN:",
+                            color=0xe10600
+                        )
+                        
+                        for i, title in enumerate(titles, 1):
+                            # Clean up title (remove CDATA and HTML entities)
+                            clean_title = re.sub(r'<!\[CDATA\[(.*?)\]\]>', r'\1', title)
+                            clean_title = re.sub(r'&amp;', '&', clean_title)
+                            clean_title = re.sub(r'&lt;', '<', clean_title)
+                            clean_title = re.sub(r'&gt;', '>', clean_title)
+                            
+                            embed.add_field(name=f"News {i}", value=clean_title, inline=False)
+                        
+                        embed.set_footer(text="Source: ESPN F1")
+                        await ctx.send(embed=embed)
+                    else:
+                        await ctx.send("Unable to parse news at the moment.")
+                else:
+                    await ctx.send("Failed to fetch news from ESPN.")
+                    
+    except Exception as e:
+        # Fallback to a simple message if RSS fails
+        embed = discord.Embed(
+            title="📰 F1 News",
+            description="For the latest Formula 1 news, visit:",
+            color=0xe10600
+        )
+        embed.add_field(name="Official F1 Website", value="https://www.formula1.com/en/latest/all.html", inline=False)
+        embed.add_field(name="ESPN F1", value="https://www.espn.com/f1/", inline=False)
+        embed.add_field(name="BBC Sport F1", value="https://www.bbc.com/sport/formula1", inline=False)
+        
+        await ctx.send(embed=embed)
+
 bot.run(TOKEN)
+
