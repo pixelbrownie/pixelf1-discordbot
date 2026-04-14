@@ -118,24 +118,46 @@ async def results(ctx):
 @bot.command()
 async def schedule(ctx):
     
-    url = "https://api.jolpi.ca/ergast/f1/current.json"
-
-    data = requests.get(url).json()
-
-    races = data["MRData"]["RaceTable"]["Races"]
+    # 2026 F1 Schedule
+    schedule_2026 = [
+        ("Mar 07", "Australian Grand Prix", "Melbourne"),
+        ("Mar 15", "Chinese Grand Prix", "Shanghai"),
+        ("Mar 28", "Japanese Grand Prix", "Suzuka"),
+        ("May 03", "Miami Grand Prix", "Miami"),
+        ("May 24", "Canadian Grand Prix", "Montreal"),
+        ("Jun 07", "Monaco Grand Prix", "Monaco"),
+        ("Jun 14", "Spanish Grand Prix", "Barcelona"),
+        ("Jun 28", "Austrian Grand Prix", "Spielberg"),
+        ("Jul 05", "British Grand Prix", "Silverstone"),
+        ("Jul 19", "Belgian Grand Prix", "Spa"),
+        ("Jul 26", "Hungarian Grand Prix", "Budapest"),
+        ("Aug 23", "Dutch Grand Prix", "Zandvoort"),
+        ("Sep 06", "Italian Grand Prix", "Monza"),
+        ("Sep 13", "Spanish Grand Prix", "Madrid"),
+        ("Sep 26", "Azerbaijan Grand Prix", "Baku"),
+        ("Oct 11", "Singapore Grand Prix", "Singapore"),
+        ("Oct 25", "United States Grand Prix", "Austin"),
+        ("Nov 01", "Mexico City Grand Prix", "Mexico"),
+        ("Nov 08", "São Paulo Grand Prix", "Brazil"),
+        ("Nov 21", "Las Vegas Grand Prix", "Las Vegas"),
+        ("Nov 29", "Qatar Grand Prix", "Qatar"),
+        ("Dec 06", "Abu Dhabi Grand Prix", "Abu Dhabi")
+    ]
 
     embed = discord.Embed(
-        title="🏎️ F1 Season Schedule",
+        title="🏎️ 2026 F1 Season Schedule",
+        description="Complete Formula 1 2026 calendar",
         color=0xe10600
     )
 
-    for race in races[:10]:
+    for date, race_name, location in schedule_2026:
         embed.add_field(
-            name=race["raceName"],
-            value=race["date"],
+            name=race_name,
+            value=f"📅 {date} | 📍 {location}",
             inline=False
         )
 
+    embed.set_footer(text="Total: 22 races")
     await ctx.send(embed=embed)
 
 # trivia command
